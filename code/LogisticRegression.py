@@ -9,9 +9,6 @@ class logistic_regression(object):
 	def __init__(self, learning_rate, max_iter):
 		self.learning_rate = learning_rate
 		self.max_iter = max_iter
-                #added parameters
-                self.W = None
-                self.learning_rate = 1
 
 	def fit_GD(self, X, y):
 		"""Train perceptron model on data (X,y) with GD.
@@ -42,17 +39,17 @@ class logistic_regression(object):
 		"""
 		### YOUR CODE HERE
                 #self.W = [0 for _ in range(len(X[0])+1)]
-                self.W = np.zeros(X.shape[1],)  # what about Bias here ??
+                self.W = np.zeros(X.shape[1],)
                 no_rows = X.shape[0]
                 i = 0
                 while i < no_rows:
                     sum_ = np.zeros(X.shape[1],)
                     for _ in range(batch_size):
                         if i>=no_rows: break
-                        sum_ += self._gradient(X[i],y[i])  # check this
+                        sum_ += self._gradient(X[i],y[i])
                         i+=1
                     grad = sum_/batch_size
-                    self.W = self.W - self.learning_rate*grad  # Update the weight !
+                    self.W = self.W - self.learning_rate*grad
 
 		### END YOUR CODE
 
@@ -88,12 +85,10 @@ class logistic_regression(object):
 		"""
 		### YOUR CODE HERE
                 num = -1 * _y * _x
-                print _x.shape
-                print self.W.shape
                 z = _y * _x.dot(self.W)
-                #z = _x.dot((_y*self.W).T)
                 den = 1 + np.exp(z)
-                return num/den
+                _g = num/den
+                return _g
 
 		### END YOUR CODE
 
@@ -119,16 +114,21 @@ class logistic_regression(object):
 				Only contains floats between [0,1].
 		"""
 		### YOUR CODE HERE
+                import math
+                def predict_helper(x):
+                    pred = 0
+                    for i in range(len(x)):
+                        pred = pred + x[i]*self.W[i]
+                    return pred
 
+                preds_proba = []
+                for row in X:
+                    k = predict_helper(row)
+                    prob = 1 / (1 + math.exp(-k))
+                    preds_proba.append([prob,1-prob])
+                return preds_proba
 		### END YOUR CODE
         
-
-        def predict_helper(self, x):
-            pred, bias = 0, self.W[0]
-            for i in range(len(x)):
-                pred = pred + x[i]*self.W[i+1]
-            pred = pred + bias
-            return pred
 
 
 	def predict(self, X):
@@ -142,8 +142,12 @@ class logistic_regression(object):
 		"""
 		### YOUR CODE HERE
                 preds = []
-                for row in X:
-                    preds,append(self.predict_helper(row))
+                predict_proba = self.predict_proba(X)
+                for row in predict_proba:
+                    if row[0] >= 0.5:
+                        preds.append(1)
+                    else:
+                        preds.append(-1)
                 return preds
 		### END YOUR CODE
 
@@ -158,6 +162,13 @@ class logistic_regression(object):
 			score: An float. Mean accuracy of self.predict(X) wrt. y.
 		"""
 		### YOUR CODE HERE
+                preds = self.predict(X)
+                score = 0
+                for a,b in zip(preds,y):
+                    if int(a)==int(b):
+                        score+=1
+                return score/float(len(y))
+
 
 		### END YOUR CODE
 
